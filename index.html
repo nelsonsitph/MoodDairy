@@ -3,47 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>心情日記 (Accumulate Ver.)</title>
+<title>心情日記 (Anchor Fix)</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=cwTeXYen&display=swap" rel="stylesheet">
 
 <style>
-    /* --- STYLES --- */
-    :root { --primary: #ff9800; --bg: #fff8e1; --text: #5d4037; --mic-active: #d32f2f; }
-    body { font-family: 'cwTeXYen', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; user-select: none; -webkit-tap-highlight-color: transparent; }
-    .container { max-width: 800px; margin: 0 auto; background: white; border: 4px dashed var(--primary); border-radius: 20px; padding: 15px; box-shadow: 0 10px 0 rgba(0,0,0,0.1); }
-    h1 { text-align: center; color: var(--primary); margin-top: 5px; }
+    /* STYLES */
+    :root { --primary: #ff9800; --bg: #fff8e1; --text: #5d4037; }
+    body { font-family: 'cwTeXYen', sans-serif; background: var(--bg); color: var(--text); padding: 15px; user-select: none; }
+    .container { max-width: 800px; margin: 0 auto; background: white; border: 4px dashed var(--primary); border-radius: 20px; padding: 15px; }
+    h1 { text-align: center; color: var(--primary); margin: 5px 0 15px 0; }
     .section { background: #fff; border: 2px solid #eee; border-radius: 15px; padding: 15px; margin-bottom: 20px; }
     
-    /* TEXT AREA - The "Screen" */
+    /* TEXTBOX - THE ANCHOR */
     textarea { 
         width: 100%; padding: 15px; border: 3px solid #ddd; border-radius: 12px; 
         font-size: 1.4rem; font-family: inherit; box-sizing: border-box; 
         background: #fafafa; outline: none; min-height: 150px;
-        transition: border 0.3s;
     }
     textarea:focus { border-color: var(--primary); }
-    /* Visual feedback when Mic is on */
-    textarea.recording { border-color: #ff5252; background: #fff5f5; }
+    textarea.listening { border-color: #ff5252; background: #fff5f5; box-shadow: 0 0 10px rgba(255, 82, 82, 0.3); }
 
     /* BUTTONS */
-    .btn { 
-        width: 100%; padding: 15px; margin: 5px 0; border: none; border-radius: 12px; 
-        font-size: 1.3rem; cursor: pointer; color: white; display: flex; 
-        justify-content: center; align-items: center; gap: 10px; font-weight: bold;
-    }
+    .btn { width: 100%; padding: 15px; margin: 5px 0; border: none; border-radius: 12px; font-size: 1.2rem; cursor: pointer; color: white; display: flex; justify-content: center; gap: 10px; font-weight: bold; }
     .btn-mic { background: #ff5252; box-shadow: 0 5px 0 #b71c1c; }
-    .btn-mic.active { background: var(--mic-active); animation: pulse 1.5s infinite; }
-    .btn-read { background: #42a5f5; box-shadow: 0 5px 0 #1565c0; font-size: 1.1rem; }
-    .btn-save { background: #4caf50; box-shadow: 0 5px 0 #2e7d32; font-size: 1.2rem; margin-top: 15px; }
+    .btn-mic.active { background: #d32f2f; animation: pulse 1.5s infinite; }
+    .btn-read { background: #42a5f5; box-shadow: 0 5px 0 #1565c0; }
+    .btn-save { background: #4caf50; box-shadow: 0 5px 0 #2e7d32; margin-top: 15px; }
     .btn:active { transform: translateY(4px); box-shadow: none !important; }
 
-    /* DATE & LOC */
+    /* TOOLS */
     input, select { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; box-sizing: border-box; }
-
-    /* DRAWING */
     .tool-row { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; }
-    .tool-btn { min-width: 50px; height: 50px; background: white; border: 2px solid #eee; border-radius: 50%; font-size: 1.5rem; cursor: pointer; }
+    .tool-btn { min-width: 50px; height: 50px; background: white; border: 2px solid #eee; border-radius: 50%; font-size: 1.5rem; }
     canvas { border: 2px solid #ccc; border-radius: 10px; width: 100%; height: auto; background: white; touch-action: none; }
 
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
@@ -65,13 +57,10 @@
 
     <div class="section">
         <h3>🗣️ 事情 (語音輸入)</h3>
-        
         <button id="btnMic" class="btn btn-mic" onclick="toggleMic()">
-            <i class="fas fa-microphone"></i> 按此說話
+            <i class="fas fa-microphone"></i> 按此說話 / 停止
         </button>
-
-        <textarea id="textBox" placeholder="請按按鈕，然後讀出句子..."></textarea>
-
+        <textarea id="textBox" placeholder="..."></textarea>
         <button class="btn btn-read" onclick="speakText()">
             <i class="fas fa-volume-up"></i> 朗讀檢查
         </button>
@@ -96,147 +85,114 @@
 <audio id="popSound" src="https://actions.google.com/sounds/v1/cartoon/pop.ogg"></audio>
 
 <script>
-    // --- 1. SETUP ---
     document.getElementById('dateInput').valueAsDate = new Date();
-    const textBox = document.getElementById('textBox');
-    const btnMic = document.getElementById('btnMic');
-    
     function playPop() { document.getElementById('popSound').play().catch(()=>{}); }
 
-    // --- 2. ACCUMULATION SPEECH LOGIC ---
+    // --- CRITICAL FIX: THE ANCHOR VARIABLE ---
     let recognition;
     let isListening = false;
-    let final_transcript = ""; // This is our Permanent Memory
+    let anchorText = ""; // This holds "Sentence 1" while we speak "Sentence 2"
 
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SpeechRecognition();
-        
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
         recognition.lang = 'zh-HK';
-        recognition.continuous = false; // MOBILE FIX: Do not force continuous. Let it stop naturally.
-        recognition.interimResults = true; // Show words as they are spoken
+        recognition.continuous = true; 
+        recognition.interimResults = true; 
 
-        // A. START: Load Memory
+        // 1. START: LOCK THE ANCHOR
         recognition.onstart = function() {
             isListening = true;
             playPop();
-            btnMic.classList.add('active');
-            btnMic.innerHTML = '<i class="fas fa-stop"></i> 收音中... (點擊停止)';
-            textBox.classList.add('recording');
+            document.getElementById('btnMic').classList.add('active');
+            document.getElementById('textBox').classList.add('listening');
+            document.getElementById('btnMic').innerHTML = '<i class="fas fa-stop"></i> 收音中...';
             
-            // 1. READ MEMORY: Grab whatever is currently in the box
-            final_transcript = textBox.value;
+            // KEY FIX: Before we start listening, grab exactly what is in the box NOW.
+            anchorText = document.getElementById('textBox').value;
             
-            // 2. SMART SPACE: If there is text, add a space/punctuation buffer
-            if (final_transcript.length > 0) {
-                // Check if last char is not a punctuation mark
-                let lastChar = final_transcript.slice(-1);
-                if (![' ', '，', '。', '\n'].includes(lastChar)) {
-                    final_transcript += " ";
-                }
+            // Add a polite space if there isn't one
+            if (anchorText.length > 0 && ![' ', '，', '。', '\n'].includes(anchorText.slice(-1))) {
+                anchorText += " ";
             }
         };
 
-        // B. END: Save State
+        // 2. RESULT: GLUE NEW WORDS TO ANCHOR
+        recognition.onresult = function(event) {
+            let newWords = "";
+            
+            // Gather all the new words from this specific session
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                newWords += event.results[i][0].transcript;
+            }
+
+            // CRITICAL: Overwrite the box with ANCHOR + NEW WORDS
+            // This ensures we never lose the Anchor (Sentence 1), and we see Sentence 2 forming instantly.
+            document.getElementById('textBox').value = anchorText + newWords;
+            
+            // Force scroll to see new words
+            document.getElementById('textBox').scrollTop = document.getElementById('textBox').scrollHeight;
+        };
+
+        // 3. END: RESET UI (Don't auto-restart, let user tap)
         recognition.onend = function() {
             isListening = false;
-            btnMic.classList.remove('active');
-            btnMic.innerHTML = '<i class="fas fa-microphone"></i> 按此說話';
-            textBox.classList.remove('recording');
+            document.getElementById('btnMic').classList.remove('active');
+            document.getElementById('textBox').classList.remove('listening');
+            document.getElementById('btnMic').innerHTML = '<i class="fas fa-microphone"></i> 按此說話 / 停止';
             
-            // 3. SAVE MEMORY: Ensure the variable matches the visual box
-            final_transcript = textBox.value; 
+            // Final Sync: Just in case, update anchor to match reality
+            anchorText = document.getElementById('textBox').value;
         };
-
-        // C. RESULT: Accumulate
-        recognition.onresult = function(event) {
-            let interim_transcript = '';
-            let new_final = '';
-
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    new_final += event.results[i][0].transcript;
-                } else {
-                    interim_transcript += event.results[i][0].transcript;
-                }
-            }
-
-            // 4. ACCUMULATE LOGIC:
-            // Memory (Previous Sentences) + New Final (Just finished)
-            if (new_final) {
-                final_transcript += new_final;
-            }
-
-            // 5. DISPLAY: 
-            // Memory + Interim (What is being said right now)
-            textBox.value = final_transcript + interim_transcript;
-            
-            // Auto scroll to bottom
-            textBox.scrollTop = textBox.scrollHeight;
-        };
-
-        recognition.onerror = function(event) {
-            // If mobile kills it, just stop quietly
+        
+        recognition.onerror = function(e) {
+            console.log("Error", e);
             isListening = false;
-            btnMic.classList.remove('active');
-            textBox.classList.remove('recording');
+            document.getElementById('btnMic').classList.remove('active');
+            document.getElementById('textBox').classList.remove('listening');
         };
-    } else {
-        alert("此瀏覽器不支援語音功能 (Browser Not Supported)");
     }
 
     function toggleMic() {
-        if (!recognition) return;
-        if (isListening) {
-            recognition.stop();
-        } else {
-            // Always reload memory from box before starting
-            final_transcript = textBox.value; 
-            recognition.start();
-        }
+        if (!recognition) return alert("Please use Chrome/Safari");
+        if (isListening) recognition.stop();
+        else recognition.start();
     }
 
-    // --- 3. DRAWING ---
+    // --- EXPORT & DRAWING ---
+    function speakText() { 
+        if(!document.getElementById('textBox').value) return;
+        let u = new SpeechSynthesisUtterance(document.getElementById('textBox').value);
+        u.lang = 'zh-HK'; window.speechSynthesis.speak(u);
+    }
+
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = "white"; ctx.fillRect(0,0,800,400); ctx.lineCap = "round"; ctx.lineJoin = "round";
-    let isDrawing = false; let brushColor = "black"; let brushSize = 5;
+    let isDrawing = false; let color = "black"; let size = 5;
 
-    function setMode(mode) {
-        if(mode==='eraser'){ ctx.globalCompositeOperation="destination-out"; brushSize=30; }
-        else{ ctx.globalCompositeOperation="source-over"; ctx.strokeStyle=brushColor; brushSize=5; }
-    }
-    function setColor(c) { brushColor=c; setMode('brush'); }
+    function setMode(m) { if(m==='eraser'){ctx.globalCompositeOperation="destination-out"; size=30;}else{ctx.globalCompositeOperation="source-over"; ctx.strokeStyle=color; size=5;} }
+    function setColor(c) { color=c; setMode('brush'); }
     function clearCanvas() { ctx.globalCompositeOperation="source-over"; ctx.fillStyle="white"; ctx.fillRect(0,0,800,400); }
-
-    function getPos(e) {
-        const r = canvas.getBoundingClientRect();
-        const x = e.touches ? e.touches[0].clientX : e.clientX;
-        const y = e.touches ? e.touches[0].clientY : e.clientY;
-        return { x: (x-r.left)*(800/r.width), y: (y-r.top)*(400/r.height) };
+    
+    function getPos(e) { 
+        const r = canvas.getBoundingClientRect(); 
+        const x = e.touches?e.touches[0].clientX:e.clientX; const y = e.touches?e.touches[0].clientY:e.clientY;
+        return {x:(x-r.left)*(800/r.width), y:(y-r.top)*(400/r.height)};
     }
-    function start(e) { e.preventDefault(); isDrawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x,p.y); ctx.lineWidth=brushSize; }
-    function move(e) { if(!isDrawing) return; e.preventDefault(); const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); }
-    function end() { isDrawing=false; }
+    function start(e){e.preventDefault(); isDrawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x,p.y); ctx.lineWidth=size;}
+    function move(e){if(!isDrawing)return; e.preventDefault(); const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke();}
+    function end(){isDrawing=false;}
+    
     canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); canvas.addEventListener('mouseup', end);
     canvas.addEventListener('touchstart', start, {passive:false}); canvas.addEventListener('touchmove', move, {passive:false}); canvas.addEventListener('touchend', end);
 
-    // --- 4. EXPORT ---
-    function speakText() { 
-        if(!textBox.value) return;
-        const u = new SpeechSynthesisUtterance(textBox.value); 
-        u.lang='zh-HK'; 
-        window.speechSynthesis.speak(u); 
-    }
-    
     function saveData() {
         const d = document.getElementById('dateInput').value;
-        const l = document.getElementById('locationSelect').value;
-        const t = textBox.value;
-        const csv = `\uFEFF日期,地點,內容\n${d},${l},${t}`;
+        const t = document.getElementById('textBox').value;
+        const csv = `\uFEFF日期,內容\n${d},${t}`;
         const a = document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=`Diary_${d}.csv`; a.click();
         setTimeout(()=>{
-            const a2 = document.createElement('a'); a2.href=canvas.toDataURL('image/jpeg'); a2.download=`Drawing_${d}.jpg`; a2.click();
+            const a2 = document.createElement('a'); a2.href=canvas.toDataURL('image/jpeg'); a2.download=`Art_${d}.jpg`; a2.click();
         },500);
     }
 </script>
