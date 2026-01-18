@@ -21,7 +21,7 @@
         background-color: var(--bg);
         color: var(--text);
         margin: 0;
-        padding: 10px;
+        padding: 15px;
         background-image: radial-gradient(#ffe0b2 15%, transparent 16%);
         background-size: 20px 20px;
         user-select: none; 
@@ -258,7 +258,6 @@
 
     function setTool(t) {
         mode = t;
-        // Update Buttons
         document.getElementById('btnBrush').className = t==='brush' ? 'tool-btn active' : 'tool-btn';
         document.getElementById('btnEraser').className = t==='eraser' ? 'tool-btn active' : 'tool-btn';
     }
@@ -277,11 +276,8 @@
         mode = 'sticker';
         sticker = s;
         playPop();
-        
-        // Hide library after pick
         document.getElementById('emojiLib').style.display = 'none';
 
-        // Float message
         const msg = document.createElement('div');
         msg.innerText = s;
         msg.style.cssText = "position:fixed; top:50%; left:50%; font-size:4rem; transform:translate(-50%,-50%); pointer-events:none; animation:pulse 0.5s; z-index:99;";
@@ -335,14 +331,18 @@
     canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); canvas.addEventListener('mouseup', end);
     canvas.addEventListener('touchstart', start, {passive: false}); canvas.addEventListener('touchmove', move, {passive: false}); canvas.addEventListener('touchend', end);
 
-    // --- 3. FIX: CONTINUOUS SPEECH TO TEXT ---
+    // --- 3. MOBILE-ROBUST SPEECH TO TEXT ---
+    // Problem: Mobile browsers kill the Mic after silence.
+    // Fix: Detect "End", then reset UI. Do not force restart (iOS blocks it).
+    // Instead, rely on manual "Toggle" but ensure it appends text.
+    
     let recognition;
     let isRecording = false;
 
     if('webkitSpeechRecognition' in window) {
         recognition = new webkitSpeechRecognition();
         recognition.lang = "zh-HK"; 
-        recognition.continuous = true;  // Keep listening!
+        recognition.continuous = true; 
         recognition.interimResults = true; 
 
         recognition.onstart = () => { 
@@ -354,12 +354,11 @@
         };
         
         recognition.onend = () => { 
-            // AUTO RESTART Check: If user didn't manually stop, try to restart
-            if(isRecording) {
-                try { recognition.start(); } catch(e) { stopMicUI(); }
-            } else {
-                stopMicUI();
-            }
+            // When mobile kills the mic, we must update UI to show it stopped.
+            isRecording = false;
+            const btn = document.getElementById('micBtn');
+            btn.classList.remove('recording');
+            btn.innerHTML = '<i class="fas fa-microphone-alt"></i> 按此說話 (語音輸入)';
         };
         
         recognition.onresult = (e) => { 
@@ -371,28 +370,22 @@
             }
             if(final) {
                 const box = document.getElementById('eventText');
-                // Add space if appending
-                if(box.value !== "" && !box.value.endsWith(" ")) box.value += " "; 
+                // Auto-append space if needed
+                if(box.value !== "" && !box.value.endsWith(" ") && !box.value.endsWith("，") && !box.value.endsWith("。")) {
+                     box.value += " "; 
+                }
                 box.value += final;
             }
         };
-    }
-
-    function stopMicUI() {
-        isRecording = false;
-        const btn = document.getElementById('micBtn');
-        btn.classList.remove('recording');
-        btn.innerHTML = '<i class="fas fa-microphone-alt"></i> 按此說話 (語音輸入)';
     }
 
     function toggleMic() {
         if(!recognition) return alert("請使用 Google Chrome 瀏覽器");
         
         if(isRecording) {
-            isRecording = false; // Flag to stop auto-restart
             recognition.stop();
         } else {
-            isRecording = true;
+            // Re-initialize to ensure fresh session on mobile
             recognition.start();
         }
     }
@@ -406,7 +399,6 @@
         u.lang = 'zh-HK';
         u.rate = 0.9; 
         
-        // Find best voice
         const voices = window.speechSynthesis.getVoices();
         const bestVoice = voices.find(v => v.name.includes("Google") && v.lang.includes("HK")) || voices.find(v => v.lang.includes("HK"));
         if(bestVoice) u.voice = bestVoice;
