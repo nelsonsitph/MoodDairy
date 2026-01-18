@@ -8,19 +8,29 @@
 <link href="https://fonts.googleapis.com/css2?family=cwTeXYen&display=swap" rel="stylesheet">
 
 <style>
-    /* ... (STYLES REMAIN THE SAME AS BEFORE) ... */
+    /* --- SAME STYLING AS BEFORE --- */
     :root { --primary: #ff9800; --secondary: #ffecb3; --accent: #4caf50; --bg: #fff8e1; --text: #5d4037; }
     body { font-family: 'cwTeXYen', "Microsoft JhengHei", sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; background-image: radial-gradient(#ffe0b2 15%, transparent 16%); background-size: 20px 20px; user-select: none; -webkit-tap-highlight-color: transparent; }
     .container { width: 100%; max-width: 800px; margin: 0 auto; background: white; border: 4px dashed var(--primary); border-radius: 20px; padding: 15px; box-sizing: border-box; box-shadow: 0 10px 0 rgba(0,0,0,0.1); }
     h1 { text-align: center; font-size: 1.8rem; color: var(--primary); margin-top: 5px; text-shadow: 2px 2px 0 #ffe0b2; }
     .section { background: #fff; border: 2px solid #eee; border-radius: 15px; padding: 15px; margin-bottom: 20px; }
     h3 { margin-top: 0; color: #8d6e63; font-size: 1.2rem; margin-bottom: 10px; }
-    input, select, textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 12px; font-size: 1.2rem; font-family: inherit; box-sizing: border-box; background: #fafafa; outline: none; margin-bottom: 8px; transition: all 0.3s; }
-    input:focus, textarea:focus { border-color: var(--primary); background: #fffde7; }
     
-    /* SIRI GLOW */
-    textarea.listening { border-color: #a29bfe !important; background: #fff !important; animation: siriPulse 1.5s infinite; }
-    @keyframes siriPulse { 0% { box-shadow: 0 0 0 0px rgba(162, 155, 254, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(108, 92, 231, 0); } 100% { box-shadow: 0 0 0 0px rgba(162, 155, 254, 0); } }
+    input, select, textarea { 
+        width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 12px; 
+        font-size: 1.2rem; font-family: inherit; box-sizing: border-box; 
+        background: #fafafa; outline: none; margin-bottom: 8px; transition: all 0.3s; 
+    }
+    input:focus, textarea:focus { border-color: var(--primary); background: #fffde7; }
+
+    /* SIRI GLOW EFFECT */
+    textarea.listening { 
+        border-color: #a29bfe !important; 
+        background: #fff !important; 
+        box-shadow: 0 0 15px rgba(162, 155, 254, 0.8);
+        animation: pulseGlow 1.5s infinite alternate;
+    }
+    @keyframes pulseGlow { from { box-shadow: 0 0 5px rgba(162, 155, 254, 0.5); } to { box-shadow: 0 0 20px rgba(162, 155, 254, 0.9); } }
 
     .btn-base { border: none; border-radius: 12px; cursor: pointer; transition: all 0.1s; display: flex; justify-content: center; align-items: center; gap: 8px; font-family: inherit; width: 100%; font-size: 1.1rem; padding: 12px; }
     .btn-base:active { transform: translateY(4px); box-shadow: none !important; }
@@ -28,6 +38,8 @@
     .btn-mic.recording { background: #d32f2f; }
     .btn-read { background: #42a5f5; color: white; box-shadow: 0 4px 0 #1565c0; margin-top: 5px; }
     .btn-save { background: var(--accent); color: white; padding: 15px; font-size: 1.3rem; box-shadow: 0 6px 0 #2e7d32; margin-top: 10px; }
+    
+    /* TOOLS & COLORS */
     .tool-box { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
     .tool-btn { flex: 1 1 30%; padding: 10px; border: 3px solid #eee; background: white; font-size: 1rem; box-shadow: 0 3px 0 #ddd; border-radius: 12px; cursor: pointer; }
     .tool-btn.active { border-color: var(--primary); background: #fff3e0; color: var(--primary); font-weight: bold; transform: translateY(2px); box-shadow: 0 1px 0 #ccc; }
@@ -36,6 +48,8 @@
     .color-btn.active { border-color: #333; transform: scale(1.1); }
     .color-picker-wrapper { width: 35px; height: 35px; border-radius: 50%; overflow: hidden; border: 3px solid white; background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); }
     input[type="color"] { width: 150%; height: 150%; margin: -25%; opacity: 0; padding: 0; }
+    
+    /* EMOJI & CANVAS */
     .emoji-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 5px; -webkit-overflow-scrolling: touch; }
     .emoji-library { display: none; background: #fff; border: 2px solid #eee; border-radius: 10px; padding: 10px; max-height: 200px; overflow-y: scroll; margin-bottom: 10px; }
     .emoji-category { font-weight: bold; color: #888; margin: 10px 0 5px 0; }
@@ -81,14 +95,13 @@
         <div class="instruction-text">
             <i class="fas fa-hand-pointer"></i> 選擇圖案或畫在畫板上。
         </div>
-
+        
         <div class="color-row">
             <div class="color-btn active" style="background:#000000" onclick="setColor('#000000', this)"></div>
             <div class="color-btn" style="background:#e74c3c" onclick="setColor('#e74c3c', this)"></div>
             <div class="color-btn" style="background:#3498db" onclick="setColor('#3498db', this)"></div>
             <div class="color-btn" style="background:#2ecc71" onclick="setColor('#2ecc71', this)"></div>
             <div class="color-btn" style="background:#f39c12" onclick="setColor('#f39c12', this)"></div>
-            <div class="color-btn" style="background:#9b59b6" onclick="setColor('#9b59b6', this)"></div>
             <div class="color-picker-wrapper"><input type="color" onchange="setColor(this.value, this.parentNode)"></div>
         </div>
 
@@ -108,23 +121,16 @@
         </div>
 
         <div id="emojiLib" class="emoji-library">
-            <div class="emoji-category">😊 表情 (Faces)</div>
+            <div class="emoji-category">😊 表情</div>
             <div class="emoji-grid">
                 <div class="emoji-item" onclick="setSticker('😀')">😀</div><div class="emoji-item" onclick="setSticker('😂')">😂</div>
-                <div class="emoji-item" onclick="setSticker('😍')">😍</div><div class="emoji-item" onclick="setSticker('🥰')">🥰</div>
-                <div class="emoji-item" onclick="setSticker('😡')">😡</div><div class="emoji-item" onclick="setSticker('😭')">😭</div>
+                <div class="emoji-item" onclick="setSticker('🥰')">🥰</div><div class="emoji-item" onclick="setSticker('😡')">😡</div>
+                <div class="emoji-item" onclick="setSticker('😭')">😭</div><div class="emoji-item" onclick="setSticker('😴')">😴</div>
             </div>
-            <div class="emoji-category">🐶 動物 (Animals)</div>
+            <div class="emoji-category">🐶 動物</div>
             <div class="emoji-grid">
                 <div class="emoji-item" onclick="setSticker('🐶')">🐶</div><div class="emoji-item" onclick="setSticker('🐱')">🐱</div>
-                <div class="emoji-item" onclick="setSticker('🐭')">🐭</div><div class="emoji-item" onclick="setSticker('🐰')">🐰</div>
-                <div class="emoji-item" onclick="setSticker('🐼')">🐼</div><div class="emoji-item" onclick="setSticker('🦁')">🦁</div>
-            </div>
-             <div class="emoji-category">🍎 食物 (Food)</div>
-            <div class="emoji-grid">
-                <div class="emoji-item" onclick="setSticker('🍎')">🍎</div><div class="emoji-item" onclick="setSticker('🍌')">🍌</div>
-                <div class="emoji-item" onclick="setSticker('🍉')">🍉</div><div class="emoji-item" onclick="setSticker('🍔')">🍔</div>
-                <div class="emoji-item" onclick="setSticker('🍟')">🍟</div><div class="emoji-item" onclick="setSticker('🍕')">🍕</div>
+                <div class="emoji-item" onclick="setSticker('🐰')">🐰</div><div class="emoji-item" onclick="setSticker('🐻')">🐻</div>
             </div>
         </div>
 
@@ -161,28 +167,22 @@
     canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); canvas.addEventListener('mouseup', end);
     canvas.addEventListener('touchstart', start, {passive: false}); canvas.addEventListener('touchmove', move, {passive: false}); canvas.addEventListener('touchend', end);
 
-    // --- 3. ULTRA-ROBUST MOBILE SPEECH RECOGNITION ---
-    // Strategy: 
-    // 1. Save text before starting.
-    // 2. Append incoming text LIVE.
-    // 3. If disconnected, just update the UI.
-
+    // --- 3. BULLETPROOF MOBILE SPEECH LOGIC ---
     let recognition;
     let isRecording = false;
-    let savedText = ""; // Holds text from BEFORE the current session
+    let baseText = ""; // The text that was in the box BEFORE we started talking
 
-    // Helper to update UI
     function updateMicUI(status) {
         const btn = document.getElementById('micBtn');
         const txt = document.getElementById('eventText');
         if (status === 'recording') {
             btn.classList.add('recording');
             btn.innerHTML = '<i class="fas fa-stop-circle"></i> 收音中... (按此停止)';
-            txt.classList.add('listening'); // Add Glow
+            txt.classList.add('listening');
         } else {
             btn.classList.remove('recording');
             btn.innerHTML = '<i class="fas fa-microphone-alt"></i> 按此說話 (語音輸入)';
-            txt.classList.remove('listening'); // Remove Glow
+            txt.classList.remove('listening');
         }
     }
 
@@ -190,51 +190,42 @@
         recognition = new webkitSpeechRecognition();
         recognition.lang = "zh-HK"; 
         recognition.continuous = true; 
-        recognition.interimResults = true; 
+        recognition.interimResults = true; // IMPORTANT for instant typing
 
         recognition.onstart = () => { 
             isRecording = true;
             playPop();
             updateMicUI('recording');
             
-            // LOCK IN CURRENT TEXT
-            savedText = document.getElementById('eventText').value;
-            // Add space if needed
-            if (savedText && !savedText.endsWith(" ") && !savedText.endsWith("，") && !savedText.endsWith("。")) {
-                savedText += " ";
+            // 1. Capture what is CURRENTLY in the box
+            baseText = document.getElementById('eventText').value;
+            
+            // 2. Add a space if needed so new words don't stick to old ones
+            if (baseText && !baseText.endsWith(" ") && !baseText.endsWith("，") && !baseText.endsWith("。")) {
+                baseText += " ";
             }
         };
         
         recognition.onend = () => { 
+            // If phone kills mic, simply update UI so user can click again
             isRecording = false;
             updateMicUI('stopped');
-            // When stopping, update savedText to include what was just spoken
-            savedText = document.getElementById('eventText').value;
         };
         
         recognition.onresult = (e) => { 
-            let interim = "";
-            let final = "";
-
+            let transcript = "";
+            
+            // 3. Loop through ALL results (Interim + Final)
             for (let i = e.resultIndex; i < e.results.length; ++i) {
-                if (e.results[i].isFinal) {
-                    final += e.results[i][0].transcript;
-                } else {
-                    interim += e.results[i][0].transcript;
-                }
+                transcript += e.results[i][0].transcript;
             }
 
-            // Append Final to Saved
-            savedText += final;
-
-            // Show: Saved (Permanent) + Interim (Floating)
-            // This is the key fix: We rewrite the whole box every time.
-            document.getElementById('eventText').value = savedText + interim;
+            // 4. Update the Box:  Base Text + New Audio Text
+            // This happens instantly as you speak (Interim)
+            document.getElementById('eventText').value = baseText + transcript;
         };
         
         recognition.onerror = (e) => {
-            console.log("Error", e);
-            // On mobile error (network/battery), simply stop UI
             isRecording = false;
             updateMicUI('stopped');
         };
