@@ -1,1 +1,413 @@
-<!DOCTYPE html><html lang="zh-HK"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>心情日記</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><link href="https://fonts.googleapis.com/css2?family=cwTeXYen&display=swap" rel="stylesheet"><style>    :root {        --primary: #ff9800; /* Orange */        --secondary: #ffecb3; /* Light Yellow */        --accent: #4caf50; /* Green */        --bg: #fff8e1;        --text: #5d4037;    }    body {        font-family: 'cwTeXYen', "Microsoft JhengHei", sans-serif;        background-color: var(--bg);        color: var(--text);        margin: 0;        padding: 20px;        background-image: radial-gradient(#ffe0b2 15%, transparent 16%);        background-size: 20px 20px;        user-select: none;     }    .container {        max-width: 800px;        margin: 0 auto;        background: white;        border: 4px dashed var(--primary);        border-radius: 30px;        padding: 30px;        box-shadow: 0 10px 0 rgba(0,0,0,0.1);    }    h1 {        text-align: center;        font-size: 2.5rem;        color: var(--primary);        margin-top: 0;        text-shadow: 2px 2px 0 #ffe0b2;    }    /* SECTIONS */    .section {        background: #fff;        border: 2px solid #eee;        border-radius: 20px;        padding: 20px;        margin-bottom: 25px;        transition: transform 0.2s;    }    .section:hover { border-color: var(--secondary); }    h3 { margin-top: 0; color: #8d6e63; font-size: 1.5rem; }    /* INPUTS */    input, select, textarea {        width: 100%;        padding: 15px;        border: 2px solid #ddd;        border-radius: 15px;        font-size: 1.3rem;        font-family: inherit;        box-sizing: border-box;        background: #fafafa;        outline: none;    }    input:focus, textarea:focus { border-color: var(--primary); background: #fffde7; }    /* SPEECH BUTTONS */    .speech-controls { display: flex; flex-direction: column; gap: 10px; }        .btn-mic {        background: #ff5252; color: white; border: none;        padding: 18px; border-radius: 15px; font-size: 1.3rem;        cursor: pointer; width: 100%; display: flex; justify-content: center; align-items: center; gap: 10px;        box-shadow: 0 5px 0 #b71c1c; margin-bottom: 5px;        transition: all 0.1s;    }    .btn-mic:active { transform: translateY(4px); box-shadow: 0 1px 0 #b71c1c; }        .btn-mic.recording {         background: #d32f2f;         animation: pulse 1.5s infinite;         box-shadow: 0 0 15px #ff5252;    }        .btn-read {        background: #42a5f5; color: white; border: none;        padding: 15px; border-radius: 15px; font-size: 1.2rem;        cursor: pointer; width: 100%; display: flex; justify-content: center; align-items: center; gap: 10px;        box-shadow: 0 5px 0 #1565c0; margin-top: 10px;        transition: all 0.1s;    }    .btn-read:active { transform: translateY(4px); box-shadow: 0 1px 0 #1565c0; }    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }    /* DRAWING AREA */    .instruction-text {        text-align: center; color: #555; font-size: 1.2rem; margin-bottom: 15px;        background: #e0f2f1; padding: 15px; border-radius: 15px; border: 1px dashed #4db6ac;    }    .tool-box {        display: flex; gap: 15px; justify-content: center; margin-bottom: 15px;    }    .tool-btn {        flex: 1; padding: 15px; border: 3px solid #eee; border-radius: 15px;        background: white; font-size: 1.2rem; cursor: pointer; text-align: center;        transition: all 0.1s;        box-shadow: 0 4px 0 #ddd;    }    .tool-btn:active { transform: translateY(4px); box-shadow: none; }    .tool-btn.active { border-color: var(--primary); background: #fff3e0; color: var(--primary); font-weight: bold; transform: translateY(2px); box-shadow: 0 2px 0 #ccc; }    /* COLOR PALETTE */    .color-row {        display: flex; justify-content: center; gap: 15px; margin-bottom: 15px;        background: #fff8e1; padding: 10px; border-radius: 20px;    }        .color-btn {        width: 45px; height: 45px; border-radius: 50%; cursor: pointer;        border: 3px solid white; box-shadow: 0 3px 5px rgba(0,0,0,0.2);        transition: transform 0.2s;    }    .color-btn:active { transform: scale(0.9); }    .color-btn.active { border-color: #333; transform: scale(1.1); }    /* Custom Color Picker input styling */    .color-picker-wrapper {        width: 45px; height: 45px; border-radius: 50%; overflow: hidden;        border: 3px solid white; box-shadow: 0 3px 5px rgba(0,0,0,0.2);        cursor: pointer; background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);    }    input[type="color"] {        width: 150%; height: 150%; margin: -25%; padding: 0; border: none; cursor: pointer; opacity: 0;    }    canvas {        border: 3px solid #ccc; border-radius: 15px; background: white;         cursor: crosshair; touch-action: none; display: block; width: 100%;        background-image: radial-gradient(#eee 10%, transparent 11%);        background-size: 20px 20px;    }    /* SAVE BTN */    .btn-save {        width: 100%; background: var(--accent); color: white; border: none;        padding: 20px; font-size: 1.5rem; border-radius: 20px; cursor: pointer;        box-shadow: 0 8px 0 #2e7d32; font-family: inherit; transition: all 0.1s;    }    .btn-save:active { transform: translateY(8px); box-shadow: none; }</style></head><body><div class="container">    <h1>🌞 心情日記</h1>    <div class="section">        <h3>📅 日期與地點</h3>        <input type="date" id="dateInput" style="margin-bottom: 10px;" onclick="playPop()">        <select id="locationSelect" onchange="checkLocation(); playPop();">            <option value="學校">🏫 學校</option>            <option value="屋企">🏠 屋企</option>            <option value="公園">🌳 公園</option>            <option value="other">✏️ 其他...</option>        </select>        <input type="text" id="locationOther" style="display:none; margin-top:10px;" placeholder="請輸入地點">    </div>    <div class="section">        <h3>🗣️ 事情</h3>        <div class="speech-controls">            <button class="btn-mic" id="micBtn" onclick="toggleMic()">                <i class="fas fa-microphone-alt"></i> 按此說話 (語音輸入)            </button>            <textarea id="eventText" rows="4" placeholder="請讀出今天發生的事情..."></textarea>            <button class="btn-read" onclick="speak(); playPop();">                <i class="fas fa-volume-up"></i> 朗讀 (檢查文字)            </button>        </div>    </div>    <div class="section">        <h3>🎨 心情畫板</h3>        <div class="instruction-text">            <i class="fas fa-hand-pointer"></i> 你可以選擇代表你的心情圖案或畫在畫板上。        </div>        <div class="tool-box">            <div class="tool-btn active" id="btnBrush" onclick="setTool('brush'); playPop();">                <i class="fas fa-paint-brush"></i> 畫筆            </div>            <div class="tool-btn" id="btnEraser" onclick="setTool('eraser'); playPop();">                <i class="fas fa-eraser"></i> 擦膠            </div>            <div class="tool-btn" style="color:#d32f2f;" onclick="clearCanvas(); playPop();">                <i class="fas fa-trash"></i> 清除            </div>        </div>        <div class="color-row">            <div class="color-btn active" style="background:#000000" onclick="setColor('#000000', this)"></div>            <div class="color-btn" style="background:#e74c3c" onclick="setColor('#e74c3c', this)"></div>            <div class="color-btn" style="background:#3498db" onclick="setColor('#3498db', this)"></div>            <div class="color-btn" style="background:#2ecc71" onclick="setColor('#2ecc71', this)"></div>            <div class="color-btn" style="background:#f39c12" onclick="setColor('#f39c12', this)"></div>            <div class="color-picker-wrapper" title="自訂顏色">                <input type="color" onchange="setColor(this.value, this.parentNode)">            </div>        </div>        <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:10px; margin-bottom:10px;">             <button class="tool-btn" onclick="setSticker('😀'); playPop();">😀</button>             <button class="tool-btn" onclick="setSticker('😢'); playPop();">😢</button>             <button class="tool-btn" onclick="setSticker('😡'); playPop();">😡</button>             <button class="tool-btn" onclick="setSticker('🥰'); playPop();">🥰</button>             <button class="tool-btn" onclick="setSticker('😴'); playPop();">😴</button>             <button class="tool-btn" onclick="setSticker('🎉'); playPop();">🎉</button>        </div>        <canvas id="canvas" width="800" height="400"></canvas>    </div>    <button class="btn-save" onclick="saveFiles(); playPop();">💾 儲存日記</button></div><audio id="popSound" src="https://actions.google.com/sounds/v1/cartoon/pop.ogg"></audio><script>    // --- 0. SOUND EFFECT ---    function playPop() {        const audio = document.getElementById('popSound');        audio.currentTime = 0;        audio.play().catch(e => console.log("Audio play blocked")); // Catch auto-play block    }    // --- 1. SETUP ---    document.getElementById('dateInput').valueAsDate = new Date();    const canvas = document.getElementById('canvas');    const ctx = canvas.getContext('2d');        // Default Canvas Settings    ctx.fillStyle = "white";     ctx.fillRect(0,0,800,400);     ctx.lineCap = "round";     ctx.lineJoin = "round";        // --- 2. DRAWING LOGIC ---    let mode = 'brush';     let sticker = '';    let isDrawing = false;    let currentColor = '#000000'; // Track current color    function setTool(t) {        mode = t;        document.getElementById('btnBrush').className = t==='brush' ? 'tool-btn active' : 'tool-btn';        document.getElementById('btnEraser').className = t==='eraser' ? 'tool-btn active' : 'tool-btn';    }    function setColor(color, btn) {        currentColor = color;        playPop();                // Visual Active State for Colors        if(btn && !btn.classList.contains('color-picker-wrapper')) {            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));            btn.classList.add('active');        }        // Auto-switch to brush if using eraser        if(mode === 'eraser' || mode === 'sticker') {            setTool('brush');        }    }    function setSticker(s) {        mode = 'sticker';        sticker = s;        // Simple visual feedback        const msg = document.createElement('div');        msg.innerText = "已選擇 " + s + " (點擊畫板貼上)";        msg.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.8); color:white; padding:20px; border-radius:10px; z-index:999;";        document.body.appendChild(msg);        setTimeout(() => msg.remove(), 1000);    }    function clearCanvas() {        ctx.fillStyle = "white";         ctx.fillRect(0,0,800,400);    }    // DRAWING EVENTS    function getPos(e) {        const r = canvas.getBoundingClientRect();        const tx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;        const ty = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;        return { x: tx * (canvas.width/r.width), y: ty * (canvas.height/r.height) };    }    function start(e) {        e.preventDefault();        const p = getPos(e);        if(mode === 'sticker') {            playPop();             ctx.font = "80px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle";            ctx.fillStyle = "black";            ctx.fillText(sticker, p.x, p.y);        } else {            isDrawing = true;            ctx.beginPath(); ctx.moveTo(p.x, p.y);            // Apply Logic            if(mode === 'eraser') {                ctx.lineWidth = 30;                ctx.strokeStyle = 'white';            } else {                ctx.lineWidth = 5;                ctx.strokeStyle = currentColor; // Use selected color            }        }    }    function move(e) {        if(!isDrawing || mode==='sticker') return;        e.preventDefault();        const p = getPos(e);        ctx.lineTo(p.x, p.y); ctx.stroke();    }    function end() { isDrawing = false; }    canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); canvas.addEventListener('mouseup', end);    canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', move); canvas.addEventListener('touchend', end);    // --- 3. SPEECH TO TEXT ---    let recognition;    let isRecording = false;    if('webkitSpeechRecognition' in window) {        recognition = new webkitSpeechRecognition();        recognition.lang = "zh-HK";         recognition.continuous = true;         recognition.interimResults = true;         recognition.onstart = () => {             isRecording = true;            playPop();            const btn = document.getElementById('micBtn');            btn.classList.add('recording');            btn.innerHTML = '<i class="fas fa-stop-circle"></i> 收音中... (按此停止)';        };                recognition.onend = () => {             isRecording = false;            const btn = document.getElementById('micBtn');            btn.classList.remove('recording');            btn.innerHTML = '<i class="fas fa-microphone-alt"></i> 按此說話 (語音輸入)';        };                recognition.onresult = (e) => {             let final = "";            for (let i = e.resultIndex; i < e.results.length; ++i) {                if (e.results[i].isFinal) {                    final += e.results[i][0].transcript;                }            }            if(final) document.getElementById('eventText').value += final;        };    }    function toggleMic() {        if(!recognition) return alert("請使用 Google Chrome 瀏覽器");        if(isRecording) recognition.stop();        else recognition.start();    }    // --- 4. TEXT TO SPEECH ---    function speak() {        const txt = document.getElementById('eventText').value;        if(!txt) return;        const u = new SpeechSynthesisUtterance(txt);        u.lang = 'zh-HK';        u.rate = 0.9;         u.pitch = 1.0;         const voices = window.speechSynthesis.getVoices();        // Priority: Google Cantonese -> Any HK -> Any        const bestVoice = voices.find(v => v.name.includes("Google") && v.lang.includes("HK"))                        || voices.find(v => v.lang.includes("HK"));                if(bestVoice) u.voice = bestVoice;        window.speechSynthesis.speak(u);    }    // --- 5. EXPORT ---    function checkLocation() { document.getElementById('locationOther').style.display = document.getElementById('locationSelect').value==='other'?'block':'none'; }        function saveFiles() {        const date = document.getElementById('dateInput').value;        let loc = document.getElementById('locationSelect').value;        if(loc==='other') loc = document.getElementById('locationOther').value;        const txt = document.getElementById('eventText').value;                const csv = "\uFEFF" + `日期,地點,事情\n${date},${loc},${txt}`;        const l1 = document.createElement('a'); l1.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); l1.download=`Diary_${date}.csv`; l1.click();        setTimeout(()=>{            const l2 = document.createElement('a'); l2.href=canvas.toDataURL('image/jpeg'); l2.download=`Drawing_${date}.jpg`; l2.click();        },500);    }</script></body></html>
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>心情日記</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=cwTeXYen&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --primary: #ff9800; 
+        --secondary: #ffecb3; 
+        --accent: #4caf50; 
+        --bg: #fff8e1;
+        --text: #5d4037;
+    }
+
+    body {
+        font-family: 'cwTeXYen', "Microsoft JhengHei", sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 15px; /* Less padding on mobile */
+        background-image: radial-gradient(#ffe0b2 15%, transparent 16%);
+        background-size: 20px 20px;
+        user-select: none; 
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .container {
+        width: 100%; /* Full width */
+        max-width: 800px; /* But don't get too wide on PC */
+        margin: 0 auto;
+        background: white;
+        border: 4px dashed var(--primary);
+        border-radius: 20px;
+        padding: 20px; /* Flexible padding */
+        box-sizing: border-box; /* Ensures padding doesn't break width */
+        box-shadow: 0 10px 0 rgba(0,0,0,0.1);
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 2rem; /* Responsive font size */
+        color: var(--primary);
+        margin-top: 0;
+        text-shadow: 2px 2px 0 #ffe0b2;
+    }
+
+    /* SECTIONS */
+    .section {
+        background: #fff;
+        border: 2px solid #eee;
+        border-radius: 15px;
+        padding: 15px;
+        margin-bottom: 20px;
+        transition: transform 0.2s;
+    }
+    
+    h3 { margin-top: 0; color: #8d6e63; font-size: 1.3rem; margin-bottom: 10px; }
+
+    /* INPUTS */
+    input, select, textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 12px;
+        font-size: 1.1rem; /* Readable on mobile */
+        font-family: inherit;
+        box-sizing: border-box;
+        background: #fafafa;
+        outline: none;
+        margin-bottom: 8px;
+    }
+    input:focus, textarea:focus { border-color: var(--primary); background: #fffde7; }
+
+    /* BUTTONS (Touch Friendly) */
+    .btn-mic, .btn-read, .tool-btn, .btn-save {
+        border: none; border-radius: 12px; cursor: pointer;
+        transition: all 0.1s; font-family: inherit;
+        display: flex; justify-content: center; align-items: center; gap: 8px;
+        touch-action: manipulation; /* Improves touch response */
+    }
+
+    .btn-mic {
+        background: #ff5252; color: white;
+        padding: 15px; font-size: 1.1rem; width: 100%;
+        box-shadow: 0 4px 0 #b71c1c; margin-bottom: 5px;
+    }
+    .btn-mic:active { transform: translateY(4px); box-shadow: 0 0 0 #b71c1c; }
+    .btn-mic.recording { background: #d32f2f; animation: pulse 1.5s infinite; box-shadow: 0 0 10px #ff5252; }
+    
+    .btn-read {
+        background: #42a5f5; color: white;
+        padding: 12px; font-size: 1.1rem; width: 100%;
+        box-shadow: 0 4px 0 #1565c0; margin-top: 5px;
+    }
+    .btn-read:active { transform: translateY(4px); box-shadow: 0 0 0 #1565c0; }
+
+    /* DRAWING TOOLS (Responsive Grid) */
+    .tool-box {
+        display: flex; 
+        gap: 10px; 
+        margin-bottom: 10px;
+        flex-wrap: wrap; /* WRAPS BUTTONS ON PHONES */
+    }
+
+    .tool-btn {
+        flex: 1 1 30%; /* Grow to fill space, min width 30% */
+        padding: 12px; border: 3px solid #eee; background: white; 
+        font-size: 1.1rem; box-shadow: 0 3px 0 #ddd;
+    }
+    .tool-btn.active { border-color: var(--primary); background: #fff3e0; color: var(--primary); font-weight: bold; transform: translateY(2px); box-shadow: 0 1px 0 #ccc; }
+
+    /* COLORS (Wrap on mobile) */
+    .color-row {
+        display: flex; justify-content: center; gap: 10px; margin-bottom: 10px;
+        background: #fff8e1; padding: 10px; border-radius: 15px;
+        flex-wrap: wrap; /* Important for small screens */
+    }
+    .color-btn {
+        width: 35px; height: 35px; border-radius: 50%; cursor: pointer;
+        border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .color-btn.active { border-color: #333; transform: scale(1.1); }
+    .color-picker-wrapper { width: 35px; height: 35px; border-radius: 50%; overflow: hidden; border: 3px solid white; background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); }
+    input[type="color"] { width: 150%; height: 150%; margin: -25%; opacity: 0; padding: 0; }
+
+    /* CANVAS (Responsive!) */
+    canvas {
+        border: 3px solid #ccc; border-radius: 15px; background: white; 
+        cursor: crosshair; touch-action: none; display: block; 
+        width: 100%; /* Shrinks to fit screen */
+        height: auto; /* Maintains aspect ratio */
+        background-image: radial-gradient(#eee 10%, transparent 11%);
+        background-size: 20px 20px;
+    }
+
+    .instruction-text {
+        text-align: center; color: #555; font-size: 1rem; margin-bottom: 10px;
+        background: #e0f2f1; padding: 10px; border-radius: 10px; border: 1px dashed #4db6ac;
+    }
+
+    .btn-save {
+        width: 100%; background: var(--accent); color: white;
+        padding: 15px; font-size: 1.3rem; border-radius: 15px; 
+        box-shadow: 0 6px 0 #2e7d32; margin-top: 10px;
+    }
+    .btn-save:active { transform: translateY(6px); box-shadow: none; }
+
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+
+    /* MOBILE TWEAKS */
+    @media (max-width: 600px) {
+        body { padding: 10px; }
+        .container { padding: 15px; border-width: 3px; }
+        h1 { font-size: 1.6rem; }
+        .tool-btn { font-size: 1rem; padding: 10px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🌞 心情日記</h1>
+
+    <div class="section">
+        <h3>📅 日期與地點</h3>
+        <input type="date" id="dateInput" onclick="playPop()">
+        <select id="locationSelect" onchange="checkLocation(); playPop();">
+            <option value="學校">🏫 學校</option>
+            <option value="屋企">🏠 屋企</option>
+            <option value="公園">🌳 公園</option>
+            <option value="other">✏️ 其他...</option>
+        </select>
+        <input type="text" id="locationOther" style="display:none;" placeholder="請輸入地點">
+    </div>
+
+    <div class="section">
+        <h3>🗣️ 事情</h3>
+        <div class="speech-controls">
+            <button class="btn-mic" id="micBtn" onclick="toggleMic()">
+                <i class="fas fa-microphone-alt"></i> 按此說話 (語音輸入)
+            </button>
+            <textarea id="eventText" rows="4" placeholder="請讀出今天發生的事情..."></textarea>
+            <button class="btn-read" onclick="speak(); playPop();">
+                <i class="fas fa-volume-up"></i> 朗讀 (檢查文字)
+            </button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>🎨 心情畫板</h3>
+        <div class="instruction-text">
+            <i class="fas fa-hand-pointer"></i> 選擇圖案或畫在畫板上。
+        </div>
+
+        <div class="color-row">
+            <div class="color-btn active" style="background:#000000" onclick="setColor('#000000', this)"></div>
+            <div class="color-btn" style="background:#e74c3c" onclick="setColor('#e74c3c', this)"></div>
+            <div class="color-btn" style="background:#3498db" onclick="setColor('#3498db', this)"></div>
+            <div class="color-btn" style="background:#2ecc71" onclick="setColor('#2ecc71', this)"></div>
+            <div class="color-btn" style="background:#f39c12" onclick="setColor('#f39c12', this)"></div>
+            <div class="color-picker-wrapper">
+                <input type="color" onchange="setColor(this.value, this.parentNode)">
+            </div>
+        </div>
+
+        <div class="tool-box">
+            <div class="tool-btn active" id="btnBrush" onclick="setTool('brush'); playPop();">
+                <i class="fas fa-paint-brush"></i> 畫筆
+            </div>
+            <div class="tool-btn" id="btnEraser" onclick="setTool('eraser'); playPop();">
+                <i class="fas fa-eraser"></i> 擦膠
+            </div>
+            <div class="tool-btn" style="color:#d32f2f;" onclick="clearCanvas(); playPop();">
+                <i class="fas fa-trash"></i> 清除
+            </div>
+        </div>
+
+        <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:10px; margin-bottom:5px; -webkit-overflow-scrolling: touch;">
+             <button class="tool-btn" style="min-width:50px;" onclick="setSticker('😀'); playPop();">😀</button>
+             <button class="tool-btn" style="min-width:50px;" onclick="setSticker('😢'); playPop();">😢</button>
+             <button class="tool-btn" style="min-width:50px;" onclick="setSticker('😡'); playPop();">😡</button>
+             <button class="tool-btn" style="min-width:50px;" onclick="setSticker('🥰'); playPop();">🥰</button>
+             <button class="tool-btn" style="min-width:50px;" onclick="setSticker('😴'); playPop();">😴</button>
+             <button class="tool-btn" style="min-width:50px;" onclick="setSticker('🎉'); playPop();">🎉</button>
+        </div>
+
+        <canvas id="canvas" width="800" height="400"></canvas>
+    </div>
+
+    <button class="btn-save" onclick="saveFiles(); playPop();">💾 儲存日記</button>
+</div>
+
+<audio id="popSound" src="https://actions.google.com/sounds/v1/cartoon/pop.ogg"></audio>
+
+<script>
+    // --- 0. SOUND ---
+    function playPop() {
+        const audio = document.getElementById('popSound');
+        audio.currentTime = 0;
+        audio.play().catch(e=>{}); 
+    }
+
+    // --- 1. SETUP ---
+    document.getElementById('dateInput').valueAsDate = new Date();
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    ctx.fillStyle = "white"; 
+    ctx.fillRect(0,0, canvas.width, canvas.height); 
+    ctx.lineCap = "round"; 
+    ctx.lineJoin = "round";
+    
+    // --- 2. RESPONSIVE DRAWING LOGIC ---
+    let mode = 'brush'; 
+    let sticker = '';
+    let isDrawing = false;
+    let currentColor = '#000000'; 
+
+    function setTool(t) {
+        mode = t;
+        document.getElementById('btnBrush').className = t==='brush' ? 'tool-btn active' : 'tool-btn';
+        document.getElementById('btnEraser').className = t==='eraser' ? 'tool-btn active' : 'tool-btn';
+    }
+
+    function setColor(color, btn) {
+        currentColor = color;
+        playPop();
+        if(btn && !btn.classList.contains('color-picker-wrapper')) {
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+        if(mode === 'eraser' || mode === 'sticker') setTool('brush');
+    }
+
+    function setSticker(s) {
+        mode = 'sticker';
+        sticker = s;
+        // Float message for 1 sec
+        const msg = document.createElement('div');
+        msg.innerText = s;
+        msg.style.cssText = "position:fixed; top:50%; left:50%; font-size:4rem; transform:translate(-50%,-50%); pointer-events:none; animation:pulse 0.5s;";
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 800);
+    }
+
+    function clearCanvas() {
+        ctx.fillStyle = "white"; 
+        ctx.fillRect(0,0,canvas.width, canvas.height);
+    }
+
+    // CRITICAL: Accurate coordinates for resized canvas
+    function getPos(e) {
+        const rect = canvas.getBoundingClientRect(); 
+        const scaleX = canvas.width / rect.width;   // Ratio: Actual Pixels / CSS Pixels
+        const scaleY = canvas.height / rect.height;
+
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        return { 
+            x: (clientX - rect.left) * scaleX, 
+            y: (clientY - rect.top) * scaleY 
+        };
+    }
+
+    function start(e) {
+        e.preventDefault(); // Stop scrolling on phone
+        const p = getPos(e);
+        if(mode === 'sticker') {
+            playPop(); 
+            ctx.font = "80px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle";
+            ctx.fillStyle = "black";
+            ctx.fillText(sticker, p.x, p.y);
+        } else {
+            isDrawing = true;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y);
+            if(mode === 'eraser') {
+                ctx.lineWidth = 30; ctx.strokeStyle = 'white';
+            } else {
+                ctx.lineWidth = 5; ctx.strokeStyle = currentColor;
+            }
+        }
+    }
+    function move(e) {
+        if(!isDrawing || mode==='sticker') return;
+        e.preventDefault(); // Stop scrolling on phone
+        const p = getPos(e);
+        ctx.lineTo(p.x, p.y); ctx.stroke();
+    }
+    function end() { isDrawing = false; }
+
+    canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); canvas.addEventListener('mouseup', end);
+    canvas.addEventListener('touchstart', start, {passive: false}); 
+    canvas.addEventListener('touchmove', move, {passive: false}); 
+    canvas.addEventListener('touchend', end);
+
+    // --- 3. SPEECH TO TEXT ---
+    let recognition;
+    let isRecording = false;
+
+    if('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.lang = "zh-HK"; 
+        recognition.continuous = true; 
+        recognition.interimResults = true; 
+
+        recognition.onstart = () => { 
+            isRecording = true;
+            playPop();
+            const btn = document.getElementById('micBtn');
+            btn.classList.add('recording');
+            btn.innerHTML = '<i class="fas fa-stop-circle"></i> 收音中... (按此停止)';
+        };
+        
+        recognition.onend = () => { 
+            isRecording = false;
+            const btn = document.getElementById('micBtn');
+            btn.classList.remove('recording');
+            btn.innerHTML = '<i class="fas fa-microphone-alt"></i> 按此說話 (語音輸入)';
+        };
+        
+        recognition.onresult = (e) => { 
+            let final = "";
+            for (let i = e.resultIndex; i < e.results.length; ++i) {
+                if (e.results[i].isFinal) final += e.results[i][0].transcript;
+            }
+            if(final) document.getElementById('eventText').value += final;
+        };
+    }
+
+    function toggleMic() {
+        if(!recognition) return alert("請使用 Google Chrome 瀏覽器");
+        if(isRecording) recognition.stop();
+        else recognition.start();
+    }
+
+    // --- 4. TEXT TO SPEECH ---
+    function speak() {
+        const txt = document.getElementById('eventText').value;
+        if(!txt) return;
+
+        const u = new SpeechSynthesisUtterance(txt);
+        u.lang = 'zh-HK';
+        u.rate = 0.9; u.pitch = 1.0; 
+        const voices = window.speechSynthesis.getVoices();
+        const bestVoice = voices.find(v => v.name.includes("Google") && v.lang.includes("HK")) || voices.find(v => v.lang.includes("HK"));
+        if(bestVoice) u.voice = bestVoice;
+        window.speechSynthesis.speak(u);
+    }
+
+    // --- 5. EXPORT ---
+    function checkLocation() { document.getElementById('locationOther').style.display = document.getElementById('locationSelect').value==='other'?'block':'none'; }
+    
+    function saveFiles() {
+        const date = document.getElementById('dateInput').value;
+        let loc = document.getElementById('locationSelect').value;
+        if(loc==='other') loc = document.getElementById('locationOther').value;
+        const txt = document.getElementById('eventText').value;
+        
+        const csv = "\uFEFF" + `日期,地點,事情\n${date},${loc},${txt}`;
+        const l1 = document.createElement('a'); l1.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); l1.download=`Diary_${date}.csv`; l1.click();
+
+        setTimeout(()=>{
+            const l2 = document.createElement('a'); l2.href=canvas.toDataURL('image/jpeg'); l2.download=`Drawing_${date}.jpg`; l2.click();
+        },500);
+    }
+</script>
+</body>
+</html>
