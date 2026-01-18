@@ -21,7 +21,7 @@
         background-color: var(--bg);
         color: var(--text);
         margin: 0;
-        padding: 15px;
+        padding: 10px;
         background-image: radial-gradient(#ffe0b2 15%, transparent 16%);
         background-size: 20px 20px;
         user-select: none; 
@@ -98,8 +98,7 @@
     /* EMOJI LIBRARY */
     .emoji-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 5px; -webkit-overflow-scrolling: touch; }
     .emoji-library {
-        display: none; /* Hidden by default */
-        background: #fff; border: 2px solid #eee; border-radius: 10px; padding: 10px;
+        display: none; background: #fff; border: 2px solid #eee; border-radius: 10px; padding: 10px;
         max-height: 200px; overflow-y: scroll; margin-bottom: 10px;
     }
     .emoji-category { font-weight: bold; color: #888; margin: 10px 0 5px 0; }
@@ -331,13 +330,25 @@
     canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); canvas.addEventListener('mouseup', end);
     canvas.addEventListener('touchstart', start, {passive: false}); canvas.addEventListener('touchmove', move, {passive: false}); canvas.addEventListener('touchend', end);
 
-    // --- 3. MOBILE-ROBUST SPEECH TO TEXT ---
-    // Problem: Mobile browsers kill the Mic after silence.
-    // Fix: Detect "End", then reset UI. Do not force restart (iOS blocks it).
-    // Instead, rely on manual "Toggle" but ensure it appends text.
+    // --- 3. MOBILE ROBUST SPEECH (APPEND STRATEGY) ---
+    // Key Strategy: Never hold 'transcript' in a variable. 
+    // Always append directly to textarea.value.
     
     let recognition;
     let isRecording = false;
+    let silenceTimer = null;
+
+    // Helper to update Button UI
+    function updateMicUI(status) {
+        const btn = document.getElementById('micBtn');
+        if (status === 'recording') {
+            btn.classList.add('recording');
+            btn.innerHTML = '<i class="fas fa-stop-circle"></i> 收音中... (按此停止)';
+        } else {
+            btn.classList.remove('recording');
+            btn.innerHTML = '<i class="fas fa-microphone-alt"></i> 按此說話 (語音輸入)';
+        }
+    }
 
     if('webkitSpeechRecognition' in window) {
         recognition = new webkitSpeechRecognition();
@@ -345,38 +356,62 @@
         recognition.continuous = true; 
         recognition.interimResults = true; 
 
+        // 1. START EVENT
         recognition.onstart = () => { 
             isRecording = true;
             playPop();
-            const btn = document.getElementById('micBtn');
-            btn.classList.add('recording');
-            btn.innerHTML = '<i class="fas fa-stop-circle"></i> 收音中... (按此停止)';
+            updateMicUI('recording');
+            resetSilenceTimer(); // Start counting silence
         };
         
+        // 2. END EVENT (Mobile browser killed it)
         recognition.onend = () => { 
-            // When mobile kills the mic, we must update UI to show it stopped.
             isRecording = false;
-            const btn = document.getElementById('micBtn');
-            btn.classList.remove('recording');
-            btn.innerHTML = '<i class="fas fa-microphone-alt"></i> 按此說話 (語音輸入)';
+            updateMicUI('stopped');
+            clearTimeout(silenceTimer); // Stop counting
         };
         
+        // 3. RESULT EVENT (The magic happens here)
         recognition.onresult = (e) => { 
+            // User spoke, so reset the silence timer!
+            resetSilenceTimer();
+
+            let interim = "";
             let final = "";
+
             for (let i = e.resultIndex; i < e.results.length; ++i) {
                 if (e.results[i].isFinal) {
                     final += e.results[i][0].transcript;
+                } else {
+                    interim += e.results[i][0].transcript;
                 }
             }
+
+            // APPEND STRATEGY: 
+            // We only care about FINAL results. We append them to the box.
             if(final) {
                 const box = document.getElementById('eventText');
-                // Auto-append space if needed
-                if(box.value !== "" && !box.value.endsWith(" ") && !box.value.endsWith("，") && !box.value.endsWith("。")) {
+                
+                // Smart spacing: Add space if box isn't empty and doesn't end with punctuation
+                let val = box.value;
+                if(val !== "" && !val.endsWith(" ") && !val.endsWith("，") && !val.endsWith("。")) {
                      box.value += " "; 
                 }
                 box.value += final;
             }
         };
+    }
+
+    // 4. SILENCE TIMER LOGIC
+    // If no result for 10 seconds, stop mic.
+    function resetSilenceTimer() {
+        clearTimeout(silenceTimer);
+        silenceTimer = setTimeout(() => {
+            if(isRecording && recognition) {
+                recognition.stop();
+                alert("已閒置 10 秒，錄音自動停止。");
+            }
+        }, 10000); // 10000ms = 10 seconds
     }
 
     function toggleMic() {
@@ -385,7 +420,6 @@
         if(isRecording) {
             recognition.stop();
         } else {
-            // Re-initialize to ensure fresh session on mobile
             recognition.start();
         }
     }
