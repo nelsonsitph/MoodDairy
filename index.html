@@ -3,49 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>心情日記 (Universal)</title>
+<title>心情日記 (Accumulate Ver.)</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=cwTeXYen&display=swap" rel="stylesheet">
 
 <style>
-    /* --- SIMPLE ROBUST STYLING --- */
-    body { font-family: 'cwTeXYen', sans-serif; background: #fff8e1; margin: 0; padding: 15px; user-select: none; }
-    .container { max-width: 800px; margin: 0 auto; background: white; border: 4px dashed #ff9800; border-radius: 20px; padding: 15px; }
-    h1 { text-align: center; color: #ff9800; margin: 5px 0 15px 0; }
-    
+    /* --- STYLES --- */
+    :root { --primary: #ff9800; --bg: #fff8e1; --text: #5d4037; --mic-active: #d32f2f; }
+    body { font-family: 'cwTeXYen', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; user-select: none; -webkit-tap-highlight-color: transparent; }
+    .container { max-width: 800px; margin: 0 auto; background: white; border: 4px dashed var(--primary); border-radius: 20px; padding: 15px; box-shadow: 0 10px 0 rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: var(--primary); margin-top: 5px; }
     .section { background: #fff; border: 2px solid #eee; border-radius: 15px; padding: 15px; margin-bottom: 20px; }
-    h3 { margin-top: 0; color: #5d4037; font-size: 1.2rem; }
-
-    /* TEXTBOX */
+    
+    /* TEXT AREA - The "Screen" */
     textarea { 
-        width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 10px; 
-        font-size: 1.3rem; font-family: inherit; box-sizing: border-box; 
-        background: #fafafa; outline: none; min-height: 120px;
+        width: 100%; padding: 15px; border: 3px solid #ddd; border-radius: 12px; 
+        font-size: 1.4rem; font-family: inherit; box-sizing: border-box; 
+        background: #fafafa; outline: none; min-height: 150px;
+        transition: border 0.3s;
     }
-    textarea:focus { border-color: #ff9800; background: #fffde7; }
+    textarea:focus { border-color: var(--primary); }
+    /* Visual feedback when Mic is on */
+    textarea.recording { border-color: #ff5252; background: #fff5f5; }
 
-    /* BIG BUTTONS */
+    /* BUTTONS */
     .btn { 
-        width: 100%; padding: 15px; margin: 5px 0; border: none; border-radius: 10px; 
-        font-size: 1.2rem; cursor: pointer; color: white; display: flex; 
-        justify-content: center; align-items: center; gap: 10px; font-weight: bold; 
+        width: 100%; padding: 15px; margin: 5px 0; border: none; border-radius: 12px; 
+        font-size: 1.3rem; cursor: pointer; color: white; display: flex; 
+        justify-content: center; align-items: center; gap: 10px; font-weight: bold;
     }
-    .btn-mic { background: #ff5252; box-shadow: 0 4px 0 #b71c1c; }
-    .btn-mic.active { background: #d32f2f; animation: pulse 1s infinite; }
-    .btn-read { background: #2196f3; box-shadow: 0 4px 0 #0d47a1; }
-    .btn-save { background: #4caf50; box-shadow: 0 4px 0 #1b5e20; }
+    .btn-mic { background: #ff5252; box-shadow: 0 5px 0 #b71c1c; }
+    .btn-mic.active { background: var(--mic-active); animation: pulse 1.5s infinite; }
+    .btn-read { background: #42a5f5; box-shadow: 0 5px 0 #1565c0; font-size: 1.1rem; }
+    .btn-save { background: #4caf50; box-shadow: 0 5px 0 #2e7d32; font-size: 1.2rem; margin-top: 15px; }
+    .btn:active { transform: translateY(4px); box-shadow: none !important; }
 
-    /* DRAWING & TOOLS */
+    /* DATE & LOC */
+    input, select { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; box-sizing: border-box; }
+
+    /* DRAWING */
     .tool-row { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; }
-    .tool-btn { 
-        flex: 1; min-width: 60px; padding: 10px; background: white; border: 2px solid #eee; 
-        border-radius: 10px; text-align: center; font-size: 1.2rem; 
-    }
-    .tool-btn.active { background: #ffe0b2; border-color: #ff9800; transform: translateY(2px); }
-    
+    .tool-btn { min-width: 50px; height: 50px; background: white; border: 2px solid #eee; border-radius: 50%; font-size: 1.5rem; cursor: pointer; }
     canvas { border: 2px solid #ccc; border-radius: 10px; width: 100%; height: auto; background: white; touch-action: none; }
-    
-    #debugLog { font-size: 0.8rem; color: #999; margin-top: 20px; border-top: 1px solid #ccc; padding-top: 5px; }
 
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
 </style>
@@ -56,9 +55,8 @@
     <h1>🌞 心情日記</h1>
 
     <div class="section">
-        <h3>📅 日期與地點</h3>
-        <input type="date" id="dateInput" style="font-size:1.2rem; padding:10px; width:100%; box-sizing:border-box; margin-bottom:10px;">
-        <select id="locationSelect" style="font-size:1.2rem; padding:10px; width:100%;">
+        <input type="date" id="dateInput">
+        <select id="locationSelect">
             <option value="學校">🏫 學校</option>
             <option value="屋企">🏠 屋企</option>
             <option value="公園">🌳 公園</option>
@@ -69,10 +67,10 @@
         <h3>🗣️ 事情 (語音輸入)</h3>
         
         <button id="btnMic" class="btn btn-mic" onclick="toggleMic()">
-            <i class="fas fa-microphone"></i> 按此說話 / 停止
+            <i class="fas fa-microphone"></i> 按此說話
         </button>
 
-        <textarea id="textBox" placeholder="請讀出內容..."></textarea>
+        <textarea id="textBox" placeholder="請按按鈕，然後讀出句子..."></textarea>
 
         <button class="btn btn-read" onclick="speakText()">
             <i class="fas fa-volume-up"></i> 朗讀檢查
@@ -82,110 +80,109 @@
     <div class="section">
         <h3>🎨 畫板</h3>
         <div class="tool-row">
-            <button class="tool-btn active" onclick="setMode('brush', this)">🖌️</button>
-            <button class="tool-btn" onclick="setMode('eraser', this)">🧽</button>
+            <button class="tool-btn" onclick="setMode('brush')">🖌️</button>
+            <button class="tool-btn" onclick="setMode('eraser')">🧽</button>
             <button class="tool-btn" onclick="clearCanvas()">🗑️</button>
             <button class="tool-btn" style="background:black;" onclick="setColor('black')"></button>
-            <button class="tool-btn" style="background:red;" onclick="setColor('red')"></button>
-            <button class="tool-btn" style="background:blue;" onclick="setColor('blue')"></button>
+            <button class="tool-btn" style="background:#e91e63;" onclick="setColor('#e91e63')"></button>
+            <button class="tool-btn" style="background:#2196f3;" onclick="setColor('#2196f3')"></button>
         </div>
         <canvas id="canvas" width="800" height="400"></canvas>
     </div>
 
-    <button class="btn btn-save" onclick="saveData()">💾 儲存檔案</button>
-    
-    <div id="debugLog">系統狀態: 準備就緒</div>
+    <button class="btn btn-save" onclick="saveData()">💾 儲存日記</button>
 </div>
 
+<audio id="popSound" src="https://actions.google.com/sounds/v1/cartoon/pop.ogg"></audio>
+
 <script>
-    // --- 1. CORE VARIABLES ---
-    const dateInput = document.getElementById('dateInput');
+    // --- 1. SETUP ---
+    document.getElementById('dateInput').valueAsDate = new Date();
     const textBox = document.getElementById('textBox');
     const btnMic = document.getElementById('btnMic');
-    const debugLog = document.getElementById('debugLog');
     
-    dateInput.valueAsDate = new Date();
+    function playPop() { document.getElementById('popSound').play().catch(()=>{}); }
 
-    // --- 2. UNIVERSAL SPEECH ENGINE ---
+    // --- 2. ACCUMULATION SPEECH LOGIC ---
     let recognition;
     let isListening = false;
-    let memoryText = ""; // The "Anchor" text
-
-    function log(msg) {
-        debugLog.innerText = "狀態: " + msg;
-        console.log(msg);
-    }
+    let final_transcript = ""; // This is our Permanent Memory
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         recognition = new SpeechRecognition();
         
-        // CRITICAL SETTINGS FOR MOBILE
         recognition.lang = 'zh-HK';
-        recognition.continuous = true;  // Try to keep open
-        recognition.interimResults = true; // Essential for "Instant" feel
-        recognition.maxAlternatives = 1;
+        recognition.continuous = false; // MOBILE FIX: Do not force continuous. Let it stop naturally.
+        recognition.interimResults = true; // Show words as they are spoken
 
+        // A. START: Load Memory
         recognition.onstart = function() {
             isListening = true;
+            playPop();
             btnMic.classList.add('active');
             btnMic.innerHTML = '<i class="fas fa-stop"></i> 收音中... (點擊停止)';
+            textBox.classList.add('recording');
             
-            // ANCHOR: Lock current text into memory immediately
-            memoryText = textBox.value;
-            // Add space logic
-            if (memoryText.length > 0 && ![' ', '，', '。'].includes(memoryText.slice(-1))) {
-                memoryText += " ";
+            // 1. READ MEMORY: Grab whatever is currently in the box
+            final_transcript = textBox.value;
+            
+            // 2. SMART SPACE: If there is text, add a space/punctuation buffer
+            if (final_transcript.length > 0) {
+                // Check if last char is not a punctuation mark
+                let lastChar = final_transcript.slice(-1);
+                if (![' ', '，', '。', '\n'].includes(lastChar)) {
+                    final_transcript += " ";
+                }
             }
-            log("收音開始 (Base: " + memoryText.length + " chars)");
         };
 
+        // B. END: Save State
         recognition.onend = function() {
             isListening = false;
             btnMic.classList.remove('active');
-            btnMic.innerHTML = '<i class="fas fa-microphone"></i> 按此說話 / 停止';
+            btnMic.innerHTML = '<i class="fas fa-microphone"></i> 按此說話';
+            textBox.classList.remove('recording');
             
-            // SYNC: Update memory to match what is visually in the box
-            memoryText = textBox.value; 
-            log("收音停止 (Saved)");
+            // 3. SAVE MEMORY: Ensure the variable matches the visual box
+            final_transcript = textBox.value; 
         };
 
+        // C. RESULT: Accumulate
         recognition.onresult = function(event) {
-            let interimTrans = '';
-            let finalTrans = '';
+            let interim_transcript = '';
+            let new_final = '';
 
-            // Process all results in the current session
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
-                    finalTrans += event.results[i][0].transcript;
+                    new_final += event.results[i][0].transcript;
                 } else {
-                    interimTrans += event.results[i][0].transcript;
+                    interim_transcript += event.results[i][0].transcript;
                 }
             }
 
-            // FORCE WRITE: Anchor + Final + Interim
-            // This overwrites the box completely every few milliseconds
-            if (finalTrans || interimTrans) {
-                // Update the memory anchor with finalized text
-                memoryText += finalTrans; 
-                // Display memory + current unstable text
-                textBox.value = memoryText + interimTrans;
-                // Auto-scroll
-                textBox.scrollTop = textBox.scrollHeight;
+            // 4. ACCUMULATE LOGIC:
+            // Memory (Previous Sentences) + New Final (Just finished)
+            if (new_final) {
+                final_transcript += new_final;
             }
+
+            // 5. DISPLAY: 
+            // Memory + Interim (What is being said right now)
+            textBox.value = final_transcript + interim_transcript;
+            
+            // Auto scroll to bottom
+            textBox.scrollTop = textBox.scrollHeight;
         };
 
         recognition.onerror = function(event) {
-            log("Error: " + event.error);
-            // If mobile kills it, reset UI so user can tap again
-            if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-                alert("請檢查瀏覽器麥克風權限 (Please check Mic permissions)");
-            }
+            // If mobile kills it, just stop quietly
             isListening = false;
             btnMic.classList.remove('active');
+            textBox.classList.remove('recording');
         };
     } else {
-        alert("此瀏覽器不支援語音輸入 (Browser not supported)");
+        alert("此瀏覽器不支援語音功能 (Browser Not Supported)");
     }
 
     function toggleMic() {
@@ -193,94 +190,54 @@
         if (isListening) {
             recognition.stop();
         } else {
-            // Safety: Update anchor one last time before starting
-            memoryText = textBox.value;
+            // Always reload memory from box before starting
+            final_transcript = textBox.value; 
             recognition.start();
         }
     }
 
-    // --- 3. DRAWING ENGINE ---
+    // --- 3. DRAWING ---
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = "white"; ctx.fillRect(0,0,800,400); 
-    ctx.lineCap = "round"; ctx.lineJoin = "round";
-    
-    let isDrawing = false;
-    let brushColor = "black";
-    let brushSize = 5;
+    ctx.fillStyle = "white"; ctx.fillRect(0,0,800,400); ctx.lineCap = "round"; ctx.lineJoin = "round";
+    let isDrawing = false; let brushColor = "black"; let brushSize = 5;
 
-    function setMode(mode, btn) {
-        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-        if(btn) btn.classList.add('active');
-        
-        if (mode === 'eraser') {
-            ctx.globalCompositeOperation = "destination-out";
-            brushSize = 30;
-        } else {
-            ctx.globalCompositeOperation = "source-over";
-            brushSize = 5;
-            ctx.strokeStyle = brushColor;
-        }
+    function setMode(mode) {
+        if(mode==='eraser'){ ctx.globalCompositeOperation="destination-out"; brushSize=30; }
+        else{ ctx.globalCompositeOperation="source-over"; ctx.strokeStyle=brushColor; brushSize=5; }
     }
+    function setColor(c) { brushColor=c; setMode('brush'); }
+    function clearCanvas() { ctx.globalCompositeOperation="source-over"; ctx.fillStyle="white"; ctx.fillRect(0,0,800,400); }
 
-    function setColor(color) {
-        brushColor = color;
-        setMode('brush', null); // Reset to brush mode
-        ctx.strokeStyle = color;
-    }
-
-    function clearCanvas() {
-        ctx.globalCompositeOperation = "source-over";
-        ctx.fillStyle = "white"; ctx.fillRect(0,0,800,400);
-        ctx.strokeStyle = brushColor;
-    }
-
-    // Touch Handling (Universal)
     function getPos(e) {
         const r = canvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return {
-            x: (clientX - r.left) * (canvas.width / r.width),
-            y: (clientY - r.top) * (canvas.height / r.height)
-        };
+        const x = e.touches ? e.touches[0].clientX : e.clientX;
+        const y = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: (x-r.left)*(800/r.width), y: (y-r.top)*(400/r.height) };
     }
+    function start(e) { e.preventDefault(); isDrawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x,p.y); ctx.lineWidth=brushSize; }
+    function move(e) { if(!isDrawing) return; e.preventDefault(); const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); }
+    function end() { isDrawing=false; }
+    canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); canvas.addEventListener('mouseup', end);
+    canvas.addEventListener('touchstart', start, {passive:false}); canvas.addEventListener('touchmove', move, {passive:false}); canvas.addEventListener('touchend', end);
 
-    function startDraw(e) { e.preventDefault(); isDrawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x, p.y); ctx.lineWidth=brushSize; }
-    function moveDraw(e) { if(!isDrawing) return; e.preventDefault(); const p=getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }
-    function endDraw() { isDrawing=false; }
-
-    canvas.addEventListener('mousedown', startDraw); canvas.addEventListener('mousemove', moveDraw); canvas.addEventListener('mouseup', endDraw);
-    canvas.addEventListener('touchstart', startDraw, {passive:false}); canvas.addEventListener('touchmove', moveDraw, {passive:false}); canvas.addEventListener('touchend', endDraw);
-
-    // --- 4. EXPORT & TTS ---
-    function speakText() {
+    // --- 4. EXPORT ---
+    function speakText() { 
         if(!textBox.value) return;
-        const u = new SpeechSynthesisUtterance(textBox.value);
-        u.lang = 'zh-HK';
-        window.speechSynthesis.speak(u);
+        const u = new SpeechSynthesisUtterance(textBox.value); 
+        u.lang='zh-HK'; 
+        window.speechSynthesis.speak(u); 
     }
-
+    
     function saveData() {
-        const txt = textBox.value;
-        const date = dateInput.value;
-        const loc = document.getElementById('locationSelect').value;
-        
-        // CSV
-        const csv = `\uFEFF日期,地點,內容\n${date},${loc},${txt}`;
-        const blob = new Blob([csv], {type:'text/csv'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `Diary_${date}.csv`;
-        a.click();
-
-        // IMG
-        setTimeout(() => {
-            const link = document.createElement('a');
-            link.download = `Drawing_${date}.jpg`;
-            link.href = canvas.toDataURL('image/jpeg');
-            link.click();
-        }, 500);
+        const d = document.getElementById('dateInput').value;
+        const l = document.getElementById('locationSelect').value;
+        const t = textBox.value;
+        const csv = `\uFEFF日期,地點,內容\n${d},${l},${t}`;
+        const a = document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=`Diary_${d}.csv`; a.click();
+        setTimeout(()=>{
+            const a2 = document.createElement('a'); a2.href=canvas.toDataURL('image/jpeg'); a2.download=`Drawing_${d}.jpg`; a2.click();
+        },500);
     }
 </script>
 </body>
